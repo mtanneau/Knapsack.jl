@@ -6,6 +6,7 @@ mutable struct BinaryKnapsack <: AbstractKnapsack
     w::Vector{Int}  # Items' weights
     v::Vector{Int}  # Items' values
     b::Int  # Capacity of the knapsack
+    perm::Vector{Int}  # permuted order of the items
 
     #========================================================
         Solution Data
@@ -23,9 +24,10 @@ mutable struct BinaryKnapsack <: AbstractKnapsack
         knp = new()
 
         knp.n = n
-        knp.w = w
-        knp.v = v
+        knp.w = copy(w)
+        knp.v = copy(v)
         knp.b = b
+        knp.perm = collect(1:n)
         
         knp.x_best = zeros(Bool, n)
         knp.z_best = zero(Int)
@@ -34,14 +36,27 @@ mutable struct BinaryKnapsack <: AbstractKnapsack
 
 end
 
-function greedy_heuristic(knp::BinaryKnapsack)
+"""
+    get_item_weights(knp::BinaryKnapsack)
+
+Return the vector of items' weights. Items are ordered as in the original
+"""
+get_item_weigths(knp::BinaryKnapsack) = copy(knp.w[knp.perm])
+get_item_values(knp::BinaryKnapsack) = copy(knp.v[knp.perm])
+get_item_order(knp::BinaryKnapsack) = copy(knp.perm)
+get_knapsack_capacity(knp::BinaryKnapsack) = knp.b
+
+get_knapsack_best_solution(knp::BinaryKnapsack) = copy(knp.x_best[knp.perm])
+
+
+function greedy_heuristic!(knp::BinaryKnapsack)
 
     x = zeros(Bool, knp.n)  # current solution
     z = 0  # current objective
     b = knp.b  # current remaining capacity
 
     for i in 1:knp.n
-        if b > knp.w[i]
+        if b >= knp.w[i]
             x[i] = true
             z += knp.v[i]
             b -= knp.w[i]
@@ -60,5 +75,27 @@ function greedy_heuristic(knp::BinaryKnapsack)
     end
 
     return z
+end
+
+"""
+    sort_items!(knp::BinaryKnapsack)
+
+Sort items by decreasing ratio `v[i]/w[i]`
+"""
+function sort_items!(knp::BinaryKnapsack)
+
+    # compute ratios
+    r = knp.v ./ knp.w
+
+    # sort
+    p = sortperm(r, rev=true)
+    for (i, j) in enumerate(p)
+        knp.perm[j]= i
+    end
+
+    knp.v .= knp.v[p]
+    knp.w .= knp.w[p]
+
+    return nothing
 end
 
