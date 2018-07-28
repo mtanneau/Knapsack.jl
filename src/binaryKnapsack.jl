@@ -46,7 +46,8 @@ get_item_values(knp::BinaryKnapsack) = copy(knp.v[knp.perm])
 get_item_order(knp::BinaryKnapsack) = copy(knp.perm)
 get_knapsack_capacity(knp::BinaryKnapsack) = knp.b
 
-get_knapsack_best_solution(knp::BinaryKnapsack) = copy(knp.x_best[knp.perm])
+get_solution(knp::BinaryKnapsack) = copy(knp.x_best[knp.perm])
+get_objective_value(knp::BinaryKnapsack) = knp.z_best
 
 
 function greedy_heuristic!(knp::BinaryKnapsack)
